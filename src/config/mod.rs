@@ -11,6 +11,15 @@ pub enum PackingStrategy {
     BestFit,
 }
 
+/// Label generation mode.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum LabelMode {
+    /// Causal language modeling labels.
+    CausalLm,
+    /// Ignore every token in loss.
+    IgnoreAll,
+}
+
 /// Sequence packer configuration.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PackerConfig {
@@ -30,6 +39,16 @@ pub struct PackerConfig {
     pub deterministic: bool,
     /// Whether oversized samples should be dropped instead of failing.
     pub drop_oversized: bool,
+    /// Label generation mode.
+    pub label_mode: LabelMode,
+    /// Whether only assistant tokens should contribute to loss.
+    pub assistant_only_loss: bool,
+    /// Prompt tokens to ignore at the start of each sample.
+    pub prompt_tokens: usize,
+    /// Whether labels should be masked across sample boundaries.
+    pub mask_sample_boundaries: bool,
+    /// Whether position ids reset per sample.
+    pub reset_position_ids_per_sample: bool,
 }
 
 impl PackerConfig {
@@ -55,6 +74,11 @@ impl Default for PackerConfig {
             skip_long_samples: true,
             deterministic: true,
             drop_oversized: true,
+            label_mode: LabelMode::CausalLm,
+            assistant_only_loss: false,
+            prompt_tokens: 0,
+            mask_sample_boundaries: false,
+            reset_position_ids_per_sample: false,
         }
     }
 }

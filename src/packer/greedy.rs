@@ -115,11 +115,23 @@ impl TunexSequencePacker for GreedyPacker {
                     .map_err(|_| PackerError::IndexOverflow)?,
             });
             token_ids.extend_from_slice(&sample.token_ids);
-            labels.extend(LabelMaskPolicy::from_config(&self.config).labels_for(sample));
+            labels.extend(LabelMaskPolicy::configured_labels(&self.config, sample));
             attention_mask.extend(std::iter::repeat_n(1, sample.token_ids.len()));
-            for position in 0..sample.token_ids.len() {
-                position_ids.push(u32::try_from(position).map_err(|_| PackerError::IndexOverflow)?);
-            }
+            let position_start = if self.config.reset_position_ids_per_sample {
+                0
+            } else {
+                token_ids.len() - sample.token_ids.len()
+            };
+            let positions = crate::masks::position_ids(
+                sample.token_ids.len(),
+                position_start,
+                if self.config.reset_position_ids_per_sample {
+                    crate::masks::PositionIdPolicy::ResetPerSample
+                } else {
+                    crate::masks::PositionIdPolicy::Continuous
+                },
+            );
+            position_ids.extend(positions);
 
             if self.config.strategy == PackingStrategy::PadOnly {
                 break;

@@ -1,7 +1,8 @@
 use tunex_core::{plugin::TunexPlugin, types::TokenizedSample};
 use tunex_packer::{
-    Alignment, BestFitPacker, GreedyPacker, PackedBatchBuilder, PackerConfig, PackerPlugin,
-    PackingStrategy, TunexSequencePacker, PACKER_PLUGIN_NAME,
+    assistant_only_loss_mask, causal_lm_labels, position_ids, prompt_loss_mask, Alignment,
+    BestFitPacker, GreedyPacker, PackedBatchBuilder, PackerConfig, PackerPlugin, PackingStrategy,
+    PositionIdPolicy, TunexSequencePacker, PACKER_PLUGIN_NAME,
 };
 
 #[test]
@@ -25,7 +26,7 @@ fn greedy_packer_builds_padded_batch() {
     assert_eq!(batch.sequence_offsets, vec![0, 3]);
     assert_eq!(batch.labels, vec![1, 2, 3, 4, 5, -100, -100, -100]);
     assert_eq!(output.layout.attention_mask, vec![1, 1, 1, 1, 1, 0, 0, 0]);
-    assert_eq!(output.layout.position_ids, vec![0, 1, 2, 0, 1, 0, 0, 0]);
+    assert_eq!(output.layout.position_ids, vec![0, 1, 2, 3, 4, 0, 0, 0]);
     assert_eq!(output.gpu_batch.input_ids, batch.token_ids);
     assert_eq!(
         output.gpu_batch.attention_mask,
@@ -131,4 +132,43 @@ fn gpu_ready_batch_builder_supports_views_slices_and_reuse() {
     let slice = view.slice(1, 4).expect("slice");
     assert_eq!(slice.input_ids, &[2, 3, 4]);
     assert_eq!(slice.labels, &[2, 3, 4]);
+}
+
+#[test]
+fn mask_layer_generates_labels_loss_masks_and_positions() {
+    let config = PackerConfig {
+        ignore_index: -100,
+        prompt_tokens: 2,
+        assistant_only_loss: true,
+        mask_sample_boundaries: false,
+        ..PackerConfig::default()
+    };
+    let labels = causal_lm_labels(&[10, 11, 12, 13], &config);
+    let prompt_mask = prompt_loss_mask(4, 2);
+    let assistant_mask = assistant_only_loss_mask(4, &[(2, 4)]);
+    let reset_positions = position_ids(4, 99, PositionIdPolicy::ResetPerSample);
+    let continuous_positions = position_ids(4, 99, PositionIdPolicy::Continuous);
+
+    assert_eq!(labels, vec![10, 11, 12, 13]);
+    assert_eq!(prompt_mask, vec![0, 0, 1, 1]);
+    assert_eq!(assistant_mask, vec![0, 0, 1, 1]);
+    assert_eq!(reset_positions, vec![0, 1, 2, 3]);
+    assert_eq!(continuous_positions, vec![99, 100, 101, 102]);
+}
+
+#[test]
+fn packer_applies_prompt_and_boundary_loss_masks() {
+    let packer = GreedyPacker::new(PackerConfig {
+        max_seq_len: 6,
+        prompt_tokens: 2,
+        mask_sample_boundaries: true,
+        ignore_index: -100,
+        ..PackerConfig::default()
+    })
+    .expect("packer");
+    let samples = vec![TokenizedSample::new(vec![1, 2, 3, 4])];
+
+    let output = packer.pack_output(&samples).expect("packed");
+
+    assert_eq!(output.batch.labels, vec![-100, -100, 3, 4, -100, -100]);
 }

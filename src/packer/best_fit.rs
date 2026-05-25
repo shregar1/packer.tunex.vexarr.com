@@ -52,8 +52,6 @@ impl TunexSequencePacker for BestFitPacker {
         let mut attention_mask = Vec::with_capacity(bins.len() * self.config.max_seq_len);
         let mut position_ids = Vec::with_capacity(bins.len() * self.config.max_seq_len);
         let mut boundaries = Vec::new();
-        let label_policy = LabelMaskPolicy::from_config(&self.config);
-
         for bin in &bins {
             let bin_start = token_ids.len();
             for sample in &bin.samples {
@@ -63,13 +61,26 @@ impl TunexSequencePacker for BestFitPacker {
                 sequence_offsets.push(offset);
                 boundaries.push(SequenceBoundary { offset, len });
                 token_ids.extend_from_slice(&sample.sample.token_ids);
-                labels.extend(label_policy.labels_for(sample.sample));
+                labels.extend(LabelMaskPolicy::configured_labels(
+                    &self.config,
+                    sample.sample,
+                ));
                 attention_mask.extend(std::iter::repeat_n(1, sample.len));
-                for position in 0..sample.len {
-                    let relative = token_ids.len() - bin_start - sample.len + position;
-                    position_ids
-                        .push(u32::try_from(relative).map_err(|_| PackerError::IndexOverflow)?);
-                }
+                let position_start = if self.config.reset_position_ids_per_sample {
+                    0
+                } else {
+                    token_ids.len() - bin_start - sample.len
+                };
+                let positions = crate::masks::position_ids(
+                    sample.len,
+                    position_start,
+                    if self.config.reset_position_ids_per_sample {
+                        crate::masks::PositionIdPolicy::ResetPerSample
+                    } else {
+                        crate::masks::PositionIdPolicy::Continuous
+                    },
+                );
+                position_ids.extend(positions);
             }
 
             let pad = self.config.max_seq_len - (token_ids.len() - bin_start);

@@ -3,6 +3,7 @@
 pub use crate::batch::*;
 pub use crate::config::*;
 pub use crate::error::*;
+pub use crate::masks::*;
 pub use crate::metrics::*;
 pub use crate::packer::*;
 pub use crate::plugin::*;
