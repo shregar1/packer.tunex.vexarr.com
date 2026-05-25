@@ -26,6 +26,10 @@ pub struct PackerConfig {
     pub labels_from_inputs: bool,
     /// Whether samples longer than max length should be skipped.
     pub skip_long_samples: bool,
+    /// Whether packing order must be deterministic.
+    pub deterministic: bool,
+    /// Whether oversized samples should be dropped instead of failing.
+    pub drop_oversized: bool,
 }
 
 impl PackerConfig {
@@ -49,6 +53,8 @@ impl Default for PackerConfig {
             strategy: PackingStrategy::Greedy,
             labels_from_inputs: true,
             skip_long_samples: true,
+            deterministic: true,
+            drop_oversized: true,
         }
     }
 }

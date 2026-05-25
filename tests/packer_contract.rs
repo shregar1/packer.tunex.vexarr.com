@@ -1,6 +1,7 @@
 use tunex_core::{plugin::TunexPlugin, types::TokenizedSample};
 use tunex_packer::{
-    GreedyPacker, PackerConfig, PackerPlugin, TunexSequencePacker, PACKER_PLUGIN_NAME,
+    BestFitPacker, GreedyPacker, PackerConfig, PackerPlugin, PackingStrategy, TunexSequencePacker,
+    PACKER_PLUGIN_NAME,
 };
 
 #[test]
@@ -46,6 +47,44 @@ fn greedy_packer_skips_long_samples() {
     assert_eq!(output.batch.token_ids, vec![6, 7, 0, 0]);
     assert_eq!(output.skipped.len(), 1);
     assert_eq!(output.skipped[0].sample_index, 0);
+}
+
+#[test]
+fn best_fit_packer_minimizes_padding_waste() {
+    let packer = BestFitPacker::new(PackerConfig {
+        strategy: PackingStrategy::BestFit,
+        max_seq_len: 8,
+        pad_token_id: 0,
+        ignore_index: -100,
+        deterministic: true,
+        drop_oversized: true,
+        ..PackerConfig::default()
+    })
+    .expect("packer");
+    let samples = vec![
+        TokenizedSample::new(vec![1, 2, 3, 4, 5]),
+        TokenizedSample::new(vec![6, 7, 8]),
+        TokenizedSample::new(vec![9, 10, 11, 12]),
+    ];
+
+    let output = packer.pack_output(&samples).expect("packed");
+
+    assert_eq!(output.waste.packed_sequences, 2);
+    assert_eq!(output.waste.packed_samples, 3);
+    assert_eq!(output.waste.real_tokens, 12);
+    assert_eq!(output.waste.padding_tokens, 4);
+    assert_eq!(output.waste.samples_per_packed_sequence(), 1.5);
+    assert_eq!(output.batch.token_ids.len(), 16);
+    assert_eq!(
+        output
+            .layout
+            .attention_mask
+            .iter()
+            .filter(|mask| **mask == 1)
+            .count(),
+        12
+    );
+    assert_eq!(output.layout.boundaries.len(), 3);
 }
 
 #[test]

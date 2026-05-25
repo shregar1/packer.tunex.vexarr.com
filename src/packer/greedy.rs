@@ -136,13 +136,26 @@ impl TunexSequencePacker for GreedyPacker {
             &mut attention_mask,
             &mut position_ids,
         );
+        let packed_samples = boundaries.len();
         let batch = PackedBatch::new(token_ids, sequence_offsets, labels);
         let layout = PackedBatchLayout {
             attention_mask,
             position_ids,
             boundaries,
         };
-        Ok(PackedOutput::new(batch, layout, skipped))
+        let real_tokens = layout
+            .attention_mask
+            .iter()
+            .filter(|mask| **mask == 1)
+            .count();
+        let waste = crate::packer::PackingWaste::new(
+            1,
+            packed_samples,
+            real_tokens,
+            self.config.max_seq_len,
+            skipped.len(),
+        );
+        Ok(PackedOutput::new(batch, layout, skipped).with_waste(waste))
     }
 }
 

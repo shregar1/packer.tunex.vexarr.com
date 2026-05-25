@@ -3,6 +3,7 @@
 use tunex_core::types::PackedBatch;
 
 use crate::batch::{PackedBatchLayout, SequenceBoundary};
+use crate::packer::PackingWaste;
 
 /// Skipped or flagged sample metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -24,6 +25,8 @@ pub struct PackedOutput {
     pub layout: PackedBatchLayout,
     /// Skipped samples.
     pub skipped: Vec<SkippedSample>,
+    /// Packing waste metrics.
+    pub waste: PackingWaste,
 }
 
 impl PackedOutput {
@@ -38,7 +41,21 @@ impl PackedOutput {
             batch,
             layout,
             skipped,
+            waste: PackingWaste {
+                packed_sequences: 1,
+                packed_samples: 0,
+                real_tokens: 0,
+                padding_tokens: 0,
+                oversized_samples: 0,
+            },
         }
+    }
+
+    /// Attaches waste metrics.
+    #[must_use]
+    pub const fn with_waste(mut self, waste: PackingWaste) -> Self {
+        self.waste = waste;
+        self
     }
 
     /// Returns true when any samples were skipped.
