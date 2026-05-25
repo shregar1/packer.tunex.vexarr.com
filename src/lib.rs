@@ -16,7 +16,10 @@ pub use batch::{
     align_capacity, Alignment, AttentionMask, PackedBatch, PackedBatchBuilder, PackedBatchLayout,
     PackedBatchSlice, PackedBatchView, PositionIds, SequenceBoundary,
 };
-pub use config::{LabelMode, PackerConfig, PackingStrategy};
+pub use config::{
+    ConfigValidationError, ConfigValidationReport, LabelMode, LayoutConfig, MaskConfig,
+    PackerConfig, PackingStrategy, ValidatePackerConfig,
+};
 pub use error::{PackerError, PackerResult};
 pub use masks::{
     assistant_only_loss_mask, causal_lm_labels, labels_from_loss_mask, packed_attention_mask,
