@@ -1,0 +1,15 @@
+[package]
+name = "tunex-packer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-trait = "0.1.89"
+bytes = "1.11.1"
+metrics = "0.24.6"
+rayon = "1.12.0"
+serde = "1.0.228"
+smallvec = "1.15.1"
+thiserror = "2.0.18"
+tracing = "0.1.44"
+tunex-core = { version = "0.1.0", path = "../core.tunex.vexarr.com" }
