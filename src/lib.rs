@@ -11,7 +11,10 @@ pub mod packer;
 pub mod plugin;
 pub mod prelude;
 
-pub use batch::{AttentionMask, PackedBatchLayout, PositionIds, SequenceBoundary};
+pub use batch::{
+    align_capacity, Alignment, AttentionMask, PackedBatch, PackedBatchBuilder, PackedBatchLayout,
+    PackedBatchSlice, PackedBatchView, PositionIds, SequenceBoundary,
+};
 pub use config::{PackerConfig, PackingStrategy};
 pub use error::{PackerError, PackerResult};
 pub use metrics::PackerMetrics;

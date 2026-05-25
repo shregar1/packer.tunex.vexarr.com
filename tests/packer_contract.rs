@@ -1,7 +1,7 @@
 use tunex_core::{plugin::TunexPlugin, types::TokenizedSample};
 use tunex_packer::{
-    BestFitPacker, GreedyPacker, PackerConfig, PackerPlugin, PackingStrategy, TunexSequencePacker,
-    PACKER_PLUGIN_NAME,
+    Alignment, BestFitPacker, GreedyPacker, PackedBatchBuilder, PackerConfig, PackerPlugin,
+    PackingStrategy, TunexSequencePacker, PACKER_PLUGIN_NAME,
 };
 
 #[test]
@@ -26,6 +26,13 @@ fn greedy_packer_builds_padded_batch() {
     assert_eq!(batch.labels, vec![1, 2, 3, 4, 5, -100, -100, -100]);
     assert_eq!(output.layout.attention_mask, vec![1, 1, 1, 1, 1, 0, 0, 0]);
     assert_eq!(output.layout.position_ids, vec![0, 1, 2, 0, 1, 0, 0, 0]);
+    assert_eq!(output.gpu_batch.input_ids, batch.token_ids);
+    assert_eq!(
+        output.gpu_batch.attention_mask,
+        output.layout.attention_mask
+    );
+    assert_eq!(output.gpu_batch.position_ids, output.layout.position_ids);
+    assert_eq!(output.gpu_batch.sample_offsets, vec![0, 3]);
     assert_eq!(output.boundaries().len(), 2);
 }
 
@@ -98,4 +105,30 @@ fn packer_plugin_exposes_core_metadata() {
         .capabilities()
         .iter()
         .any(|capability| capability.as_str() == "sequence-packing"));
+}
+
+#[test]
+fn gpu_ready_batch_builder_supports_views_slices_and_reuse() {
+    let mut builder = PackedBatchBuilder::with_capacity(8, 2, Alignment::cache_line());
+    let first = builder
+        .push_sample(&[1, 2, 3], &[1, 2, 3], 0)
+        .expect("first sample");
+    let second = builder
+        .push_sample(&[4, 5], &[4, 5], 3)
+        .expect("second sample");
+    builder.pad_to(8, 0, -100);
+    let batch = builder.finish();
+
+    assert_eq!(first.offset, 0);
+    assert_eq!(second.offset, 3);
+    assert_eq!(batch.input_ids, vec![1, 2, 3, 4, 5, 0, 0, 0]);
+    assert_eq!(batch.labels, vec![1, 2, 3, 4, 5, -100, -100, -100]);
+    assert_eq!(batch.attention_mask, vec![1, 1, 1, 1, 1, 0, 0, 0]);
+    assert_eq!(batch.position_ids, vec![0, 1, 2, 0, 1, 0, 0, 0]);
+    assert_eq!(batch.sample_offsets, vec![0, 3]);
+
+    let view = batch.view();
+    let slice = view.slice(1, 4).expect("slice");
+    assert_eq!(slice.input_ids, &[2, 3, 4]);
+    assert_eq!(slice.labels, &[2, 3, 4]);
 }

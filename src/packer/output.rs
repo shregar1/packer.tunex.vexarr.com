@@ -1,8 +1,8 @@
 //! Extended packed output.
 
-use tunex_core::types::PackedBatch;
+use tunex_core::types::PackedBatch as CorePackedBatch;
 
-use crate::batch::{PackedBatchLayout, SequenceBoundary};
+use crate::batch::{PackedBatch, PackedBatchLayout, SequenceBoundary};
 use crate::packer::PackingWaste;
 
 /// Skipped or flagged sample metadata.
@@ -20,7 +20,9 @@ pub struct SkippedSample {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PackedOutput {
     /// Core packed batch contract.
-    pub batch: PackedBatch,
+    pub batch: CorePackedBatch,
+    /// GPU transfer-ready packed batch layout.
+    pub gpu_batch: PackedBatch,
     /// Extended layout data.
     pub layout: PackedBatchLayout,
     /// Skipped samples.
@@ -32,13 +34,20 @@ pub struct PackedOutput {
 impl PackedOutput {
     /// Creates extended output.
     #[must_use]
-    pub const fn new(
-        batch: PackedBatch,
+    pub fn new(
+        batch: CorePackedBatch,
         layout: PackedBatchLayout,
         skipped: Vec<SkippedSample>,
     ) -> Self {
+        let gpu_batch = PackedBatch::from_core(
+            batch.clone(),
+            layout.attention_mask.clone(),
+            layout.position_ids.clone(),
+            batch.sequence_offsets.clone(),
+        );
         Self {
             batch,
+            gpu_batch,
             layout,
             skipped,
             waste: PackingWaste {

@@ -1,27 +1,13 @@
-//! Packed batch layout helpers.
+//! GPU-ready packed batch memory layout.
 
-/// Per-token attention mask.
-pub type AttentionMask = Vec<u8>;
+pub mod alignment;
+pub mod builder;
+pub mod layout;
+pub mod packed_batch;
+pub mod view;
 
-/// Per-token position ids.
-pub type PositionIds = Vec<u32>;
-
-/// Sequence boundary inside a packed token buffer.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct SequenceBoundary {
-    /// Start offset.
-    pub offset: u32,
-    /// Sequence length.
-    pub len: u32,
-}
-
-/// Extended packed batch layout metadata for downstream packer modules.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct PackedBatchLayout {
-    /// Attention mask aligned with packed token ids.
-    pub attention_mask: AttentionMask,
-    /// Position ids aligned with packed token ids.
-    pub position_ids: PositionIds,
-    /// Sequence boundaries aligned with `PackedBatch::sequence_offsets`.
-    pub boundaries: Vec<SequenceBoundary>,
-}
+pub use alignment::{align_capacity, Alignment};
+pub use builder::PackedBatchBuilder;
+pub use layout::{AttentionMask, PackedBatchLayout, PositionIds, SequenceBoundary};
+pub use packed_batch::PackedBatch;
+pub use view::{PackedBatchSlice, PackedBatchView};
