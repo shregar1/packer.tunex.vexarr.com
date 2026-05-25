@@ -14,6 +14,7 @@ pub mod packer;
 pub mod plugin;
 pub mod prelude;
 pub mod runtime;
+pub mod stream;
 
 pub use batch::{
     align_capacity, Alignment, AttentionMask, PackedBatch, PackedBatchBuilder, PackedBatchLayout,
@@ -44,4 +45,8 @@ pub use plugin::{PackerPlugin, PACKER_PLUGIN_NAME, PACKER_PLUGIN_VERSION};
 pub use runtime::{
     PackChunk, PackChunkOutput, PackSchedule, PackingQueue, PackingScheduler, PackingWorker,
     ParallelPacker, ParallelPackingResult, ParallelPackingStats, QueuePressure, WorkerPackingStats,
+};
+pub use stream::{
+    AsyncPackingStream, BackpressureAction, BackpressureHook, PackedBatchEnvelope,
+    PackerStreamAdapter, PackerStreamStats, QueueCapacity, TokenizedBatchInput,
 };

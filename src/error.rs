@@ -29,6 +29,12 @@ pub enum PackerError {
     /// Parallel runtime failed.
     #[error("parallel packing failed: {0}")]
     Parallel(String),
+    /// Stream processing failed.
+    #[error("stream packing failed: {0}")]
+    Stream(String),
+    /// Stream was cancelled.
+    #[error("stream packing cancelled")]
+    Cancelled,
 }
 
 impl From<PackerError> for TunexError {

@@ -31,3 +31,7 @@ pub use crate::runtime::{
     PackChunk, PackChunkOutput, PackSchedule, PackingQueue, PackingScheduler, PackingWorker,
     ParallelPacker, ParallelPackingResult, ParallelPackingStats, QueuePressure, WorkerPackingStats,
 };
+pub use crate::stream::{
+    AsyncPackingStream, BackpressureAction, BackpressureHook, PackedBatchEnvelope,
+    PackerStreamAdapter, PackerStreamStats, QueueCapacity, TokenizedBatchInput,
+};
