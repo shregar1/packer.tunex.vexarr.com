@@ -21,3 +21,7 @@ pub use crate::packer::{
     SortableSample, TunexSequencePacker,
 };
 pub use crate::plugin::{PackerPlugin, PACKER_PLUGIN_NAME, PACKER_PLUGIN_VERSION};
+pub use crate::runtime::{
+    PackChunk, PackChunkOutput, PackSchedule, PackingQueue, PackingScheduler, PackingWorker,
+    ParallelPacker, ParallelPackingResult, ParallelPackingStats, QueuePressure, WorkerPackingStats,
+};

@@ -26,6 +26,9 @@ pub enum PackerError {
     /// Packed batch has no valid samples.
     #[error("no valid samples available for packing")]
     EmptyPack,
+    /// Parallel runtime failed.
+    #[error("parallel packing failed: {0}")]
+    Parallel(String),
 }
 
 impl From<PackerError> for TunexError {

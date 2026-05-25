@@ -11,6 +11,7 @@ pub mod metrics;
 pub mod packer;
 pub mod plugin;
 pub mod prelude;
+pub mod runtime;
 
 pub use batch::{
     align_capacity, Alignment, AttentionMask, PackedBatch, PackedBatchBuilder, PackedBatchLayout,
@@ -32,3 +33,7 @@ pub use packer::{
     SequencePackingStrategy, SkippedSample, TunexSequencePacker,
 };
 pub use plugin::{PackerPlugin, PACKER_PLUGIN_NAME, PACKER_PLUGIN_VERSION};
+pub use runtime::{
+    PackChunk, PackChunkOutput, PackSchedule, PackingQueue, PackingScheduler, PackingWorker,
+    ParallelPacker, ParallelPackingResult, ParallelPackingStats, QueuePressure, WorkerPackingStats,
+};
