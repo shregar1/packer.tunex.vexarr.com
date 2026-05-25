@@ -4,10 +4,16 @@ pub use crate::batch::{
     align_capacity, Alignment, AttentionMask, PackedBatch, PackedBatchBuilder, PackedBatchLayout,
     PackedBatchSlice, PackedBatchView, PositionIds, SequenceBoundary,
 };
+pub use crate::capabilities::{
+    packer_capabilities, ASSISTANT_ONLY_LOSS, BEST_FIT_PACKING, DETERMINISTIC_PACKING,
+    GPU_READY_LAYOUT, GREEDY_PACKING, LOSS_MASK_GENERATION, PACKER_CAPABILITY_NAMES,
+    PARALLEL_PACKING, SEQUENCE_PACKING,
+};
 pub use crate::config::{
     ConfigValidationError, ConfigValidationReport, LabelMode, LayoutConfig, MaskConfig,
     PackerConfig, PackingStrategy, ValidatePackerConfig,
 };
+pub use crate::contract::PackerContract;
 pub use crate::error::{PackerError, PackerResult};
 pub use crate::masks::{
     assistant_only_loss_mask, causal_lm_labels, labels_from_loss_mask, packed_attention_mask,

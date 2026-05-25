@@ -1,6 +1,11 @@
 //! Best-fit sequence packing.
 
-use tunex_core::types::{PackedBatch, TokenizedSample};
+use async_trait::async_trait;
+use tunex_core::{
+    traits::SequencePacker,
+    types::{PackedBatch, TokenizedSample},
+    TunexResult,
+};
 
 use crate::{
     batch::{PackedBatchLayout, SequenceBoundary},
@@ -29,6 +34,14 @@ impl BestFitPacker {
     #[must_use]
     pub const fn config(&self) -> &PackerConfig {
         &self.config
+    }
+}
+
+#[async_trait]
+impl SequencePacker for BestFitPacker {
+    async fn pack(&self, samples: &[TokenizedSample]) -> TunexResult<PackedBatch> {
+        self.pack_samples(samples)
+            .map_err(tunex_core::TunexError::from)
     }
 }
 

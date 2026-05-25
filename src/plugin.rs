@@ -5,6 +5,8 @@ use tunex_core::plugin::{
     PluginVersion, TunexPlugin,
 };
 
+use crate::capabilities::packer_capabilities;
+
 /// Stable TuneX packer plugin name.
 pub const PACKER_PLUGIN_NAME: &str = "tunex-packer";
 
@@ -22,14 +24,7 @@ impl PackerPlugin {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            capabilities: vec![
-                PluginCapability::new("sequence-packing"),
-                PluginCapability::new("greedy-packing"),
-                PluginCapability::new("best-fit-packing"),
-                PluginCapability::new("padding"),
-                PluginCapability::new("label-masking"),
-                PluginCapability::new("gpu-ready-batches"),
-            ],
+            capabilities: packer_capabilities(),
         }
     }
 }

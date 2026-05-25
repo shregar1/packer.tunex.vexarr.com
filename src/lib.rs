@@ -4,7 +4,9 @@
 //! and best-fit packer implementations, plugin metadata, and a stable prelude.
 
 pub mod batch;
+pub mod capabilities;
 pub mod config;
+pub mod contract;
 pub mod error;
 pub mod masks;
 pub mod metrics;
@@ -17,10 +19,16 @@ pub use batch::{
     align_capacity, Alignment, AttentionMask, PackedBatch, PackedBatchBuilder, PackedBatchLayout,
     PackedBatchSlice, PackedBatchView, PositionIds, SequenceBoundary,
 };
+pub use capabilities::{
+    packer_capabilities, ASSISTANT_ONLY_LOSS, BEST_FIT_PACKING, DETERMINISTIC_PACKING,
+    GPU_READY_LAYOUT, GREEDY_PACKING, LOSS_MASK_GENERATION, PACKER_CAPABILITY_NAMES,
+    PARALLEL_PACKING, SEQUENCE_PACKING,
+};
 pub use config::{
     ConfigValidationError, ConfigValidationReport, LabelMode, LayoutConfig, MaskConfig,
     PackerConfig, PackingStrategy, ValidatePackerConfig,
 };
+pub use contract::PackerContract;
 pub use error::{PackerError, PackerResult};
 pub use masks::{
     assistant_only_loss_mask, causal_lm_labels, labels_from_loss_mask, packed_attention_mask,
