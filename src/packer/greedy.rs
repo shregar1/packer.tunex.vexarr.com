@@ -8,13 +8,19 @@ use tunex_core::{
 };
 
 use crate::{
-    config::PackerConfig, packer::LabelMaskPolicy, packer::PaddingPolicy, PackerError, PackerResult,
+    batch::{PackedBatchLayout, SequenceBoundary},
+    config::{PackerConfig, PackingStrategy},
+    packer::{LabelMaskPolicy, PackedOutput, PaddingPolicy, SkippedSample},
+    PackerError, PackerResult,
 };
 
 /// Convenience trait for synchronous packer calls.
 pub trait TunexSequencePacker: Send + Sync {
     /// Packs tokenized samples into a batch.
     fn pack_samples(&self, samples: &[TokenizedSample]) -> PackerResult<PackedBatch>;
+
+    /// Packs tokenized samples into an extended output.
+    fn pack_output(&self, samples: &[TokenizedSample]) -> PackerResult<PackedOutput>;
 }
 
 /// Greedy packing plan.
@@ -70,26 +76,73 @@ impl Default for GreedyPacker {
 
 impl TunexSequencePacker for GreedyPacker {
     fn pack_samples(&self, samples: &[TokenizedSample]) -> PackerResult<PackedBatch> {
+        self.pack_output(samples).map(|output| output.batch)
+    }
+
+    fn pack_output(&self, samples: &[TokenizedSample]) -> PackerResult<PackedOutput> {
         let mut token_ids = Vec::new();
         let mut sequence_offsets = Vec::with_capacity(samples.len());
         let mut labels = Vec::new();
+        let mut attention_mask = Vec::new();
+        let mut position_ids = Vec::new();
+        let mut boundaries = Vec::with_capacity(samples.len());
+        let mut skipped = Vec::new();
 
-        for sample in samples {
+        for (sample_index, sample) in samples.iter().enumerate() {
             if sample.token_ids.len() > self.config.max_seq_len {
+                let skipped_sample = SkippedSample {
+                    sample_index,
+                    actual_len: sample.token_ids.len(),
+                    max_len: self.config.max_seq_len,
+                };
+
+                if self.config.skip_long_samples {
+                    skipped.push(skipped_sample);
+                    continue;
+                }
+
                 return Err(PackerError::SequenceTooLong {
-                    actual: sample.token_ids.len(),
-                    max: self.config.max_seq_len,
+                    actual: skipped_sample.actual_len,
+                    max: skipped_sample.max_len,
                 });
             }
 
             let offset = u32::try_from(token_ids.len()).map_err(|_| PackerError::IndexOverflow)?;
             sequence_offsets.push(offset);
+            boundaries.push(SequenceBoundary {
+                offset,
+                len: u32::try_from(sample.token_ids.len())
+                    .map_err(|_| PackerError::IndexOverflow)?,
+            });
             token_ids.extend_from_slice(&sample.token_ids);
             labels.extend(LabelMaskPolicy::from_config(&self.config).labels_for(sample));
+            attention_mask.extend(std::iter::repeat_n(1, sample.token_ids.len()));
+            for position in 0..sample.token_ids.len() {
+                position_ids.push(u32::try_from(position).map_err(|_| PackerError::IndexOverflow)?);
+            }
+
+            if self.config.strategy == PackingStrategy::PadOnly {
+                break;
+            }
         }
 
-        PaddingPolicy::from_config(&self.config).pad(&mut token_ids, &mut labels);
-        Ok(PackedBatch::new(token_ids, sequence_offsets, labels))
+        if sequence_offsets.is_empty() {
+            return Err(PackerError::EmptyPack);
+        }
+
+        PaddingPolicy::from_config(&self.config).pad_all(
+            &mut token_ids,
+            &mut labels,
+            &mut attention_mask,
+            &mut position_ids,
+        );
+        let batch = PackedBatch::new(token_ids, sequence_offsets, labels);
+        let layout = PackedBatchLayout {
+            attention_mask,
+            position_ids,
+            boundaries,
+        };
+        Ok(PackedOutput::new(batch, layout, skipped))
     }
 }
 

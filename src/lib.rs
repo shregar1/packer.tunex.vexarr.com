@@ -11,11 +11,12 @@ pub mod packer;
 pub mod plugin;
 pub mod prelude;
 
-pub use batch::{AttentionMask, PackedBatchLayout, SequenceBoundary};
+pub use batch::{AttentionMask, PackedBatchLayout, PositionIds, SequenceBoundary};
 pub use config::{PackerConfig, PackingStrategy};
 pub use error::{PackerError, PackerResult};
 pub use metrics::PackerMetrics;
 pub use packer::{
-    BestFitPacker, GreedyPacker, LabelMaskPolicy, PackingPlan, PaddingPolicy, TunexSequencePacker,
+    BestFitPacker, GreedyPacker, LabelMaskPolicy, PackedOutput, PackingPlan, PaddingPolicy,
+    SequencePackingStrategy, SkippedSample, TunexSequencePacker,
 };
 pub use plugin::{PackerPlugin, PACKER_PLUGIN_NAME, PACKER_PLUGIN_VERSION};

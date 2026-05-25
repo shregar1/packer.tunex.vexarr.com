@@ -23,6 +23,9 @@ pub enum PackerError {
     /// Integer conversion would overflow.
     #[error("packing index overflow")]
     IndexOverflow,
+    /// Packed batch has no valid samples.
+    #[error("no valid samples available for packing")]
+    EmptyPack,
 }
 
 impl From<PackerError> for TunexError {

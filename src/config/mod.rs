@@ -5,6 +5,8 @@
 pub enum PackingStrategy {
     /// Append sequences greedily until the pack is full.
     Greedy,
+    /// Keep sample order and pad to max length without sequence interleaving.
+    PadOnly,
     /// Place sequences into the best remaining slot.
     BestFit,
 }
@@ -22,6 +24,8 @@ pub struct PackerConfig {
     pub strategy: PackingStrategy,
     /// Whether labels should mirror input ids.
     pub labels_from_inputs: bool,
+    /// Whether samples longer than max length should be skipped.
+    pub skip_long_samples: bool,
 }
 
 impl PackerConfig {
@@ -44,6 +48,7 @@ impl Default for PackerConfig {
             ignore_index: -100,
             strategy: PackingStrategy::Greedy,
             labels_from_inputs: true,
+            skip_long_samples: true,
         }
     }
 }

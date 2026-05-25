@@ -3,6 +3,9 @@
 /// Per-token attention mask.
 pub type AttentionMask = Vec<u8>;
 
+/// Per-token position ids.
+pub type PositionIds = Vec<u32>;
+
 /// Sequence boundary inside a packed token buffer.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct SequenceBoundary {
@@ -17,6 +20,8 @@ pub struct SequenceBoundary {
 pub struct PackedBatchLayout {
     /// Attention mask aligned with packed token ids.
     pub attention_mask: AttentionMask,
+    /// Position ids aligned with packed token ids.
+    pub position_ids: PositionIds,
     /// Sequence boundaries aligned with `PackedBatch::sequence_offsets`.
     pub boundaries: Vec<SequenceBoundary>,
 }

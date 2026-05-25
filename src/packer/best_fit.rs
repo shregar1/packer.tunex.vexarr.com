@@ -3,7 +3,9 @@
 use tunex_core::types::{PackedBatch, TokenizedSample};
 
 use crate::{
-    config::PackerConfig, packer::GreedyPacker, packer::TunexSequencePacker, PackerResult,
+    config::PackerConfig,
+    packer::{GreedyPacker, PackedOutput, TunexSequencePacker},
+    PackerResult,
 };
 
 /// Best-fit packer placeholder.
@@ -27,5 +29,9 @@ impl BestFitPacker {
 impl TunexSequencePacker for BestFitPacker {
     fn pack_samples(&self, samples: &[TokenizedSample]) -> PackerResult<PackedBatch> {
         self.inner.pack_samples(samples)
+    }
+
+    fn pack_output(&self, samples: &[TokenizedSample]) -> PackerResult<PackedOutput> {
+        self.inner.pack_output(samples)
     }
 }

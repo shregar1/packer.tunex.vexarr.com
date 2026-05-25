@@ -17,11 +17,35 @@ fn greedy_packer_builds_padded_batch() {
         TokenizedSample::new(vec![4, 5]),
     ];
 
-    let batch = packer.pack_samples(&samples).expect("packed");
+    let output = packer.pack_output(&samples).expect("packed");
+    let batch = &output.batch;
 
     assert_eq!(batch.token_ids, vec![1, 2, 3, 4, 5, 0, 0, 0]);
     assert_eq!(batch.sequence_offsets, vec![0, 3]);
     assert_eq!(batch.labels, vec![1, 2, 3, 4, 5, -100, -100, -100]);
+    assert_eq!(output.layout.attention_mask, vec![1, 1, 1, 1, 1, 0, 0, 0]);
+    assert_eq!(output.layout.position_ids, vec![0, 1, 2, 0, 1, 0, 0, 0]);
+    assert_eq!(output.boundaries().len(), 2);
+}
+
+#[test]
+fn greedy_packer_skips_long_samples() {
+    let packer = GreedyPacker::new(PackerConfig {
+        max_seq_len: 4,
+        skip_long_samples: true,
+        ..PackerConfig::default()
+    })
+    .expect("packer");
+    let samples = vec![
+        TokenizedSample::new(vec![1, 2, 3, 4, 5]),
+        TokenizedSample::new(vec![6, 7]),
+    ];
+
+    let output = packer.pack_output(&samples).expect("packed");
+
+    assert_eq!(output.batch.token_ids, vec![6, 7, 0, 0]);
+    assert_eq!(output.skipped.len(), 1);
+    assert_eq!(output.skipped[0].sample_index, 0);
 }
 
 #[test]
