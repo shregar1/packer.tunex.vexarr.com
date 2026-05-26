@@ -8,6 +8,7 @@ pub mod cache;
 pub mod capabilities;
 pub mod config;
 pub mod contract;
+pub mod distributed;
 pub mod error;
 pub mod masks;
 pub mod metrics;
@@ -35,6 +36,11 @@ pub use config::{
     PackerConfig, PackingStrategy, ValidatePackerConfig,
 };
 pub use contract::PackerContract;
+pub use distributed::{
+    BatchOwnership, DistributedPackingAssignment, DistributedPackingCursor,
+    DistributedPackingState, DistributedPackingSync, GlobalBatchId, PackerRank,
+    PackingReplayCheckpoint, PackingRoute, PackingRouter, ShardId,
+};
 pub use error::{PackerError, PackerResult};
 pub use masks::{
     assistant_only_loss_mask, causal_lm_labels, labels_from_loss_mask, packed_attention_mask,

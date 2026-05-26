@@ -18,6 +18,11 @@ pub use crate::config::{
     PackerConfig, PackingStrategy, ValidatePackerConfig,
 };
 pub use crate::contract::PackerContract;
+pub use crate::distributed::{
+    BatchOwnership, DistributedPackingAssignment, DistributedPackingCursor,
+    DistributedPackingState, DistributedPackingSync, GlobalBatchId, PackerRank,
+    PackingReplayCheckpoint, PackingRoute, PackingRouter, ShardId,
+};
 pub use crate::error::{PackerError, PackerResult};
 pub use crate::masks::{
     assistant_only_loss_mask, causal_lm_labels, labels_from_loss_mask, packed_attention_mask,
