@@ -1,7 +1,7 @@
 //! Mask and label configuration.
 
 /// Label generation mode.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum LabelMode {
     /// Causal language modeling labels.
     CausalLm,

@@ -4,6 +4,7 @@
 //! and best-fit packer implementations, plugin metadata, and a stable prelude.
 
 pub mod batch;
+pub mod cache;
 pub mod capabilities;
 pub mod config;
 pub mod contract;
@@ -19,6 +20,10 @@ pub mod stream;
 pub use batch::{
     align_capacity, Alignment, AttentionMask, PackedBatch, PackedBatchBuilder, PackedBatchLayout,
     PackedBatchSlice, PackedBatchView, PositionIds, SequenceBoundary,
+};
+pub use cache::{
+    BatchFingerprint, CacheTarget, DiskPackingCache, MemoryPackingCache, PackingCacheEntry,
+    PackingCacheKey, PackingCachePolicy, PackingCacheStats,
 };
 pub use capabilities::{
     packer_capabilities, ASSISTANT_ONLY_LOSS, BEST_FIT_PACKING, DETERMINISTIC_PACKING,

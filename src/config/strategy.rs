@@ -1,7 +1,7 @@
 //! Packing strategy configuration.
 
 /// Packing strategy.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum PackingStrategy {
     /// Append sequences greedily until the pack is full.
     Greedy,

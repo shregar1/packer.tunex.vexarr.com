@@ -4,6 +4,10 @@ pub use crate::batch::{
     align_capacity, Alignment, AttentionMask, PackedBatch, PackedBatchBuilder, PackedBatchLayout,
     PackedBatchSlice, PackedBatchView, PositionIds, SequenceBoundary,
 };
+pub use crate::cache::{
+    BatchFingerprint, CacheTarget, DiskPackingCache, MemoryPackingCache, PackingCacheEntry,
+    PackingCacheKey, PackingCachePolicy, PackingCacheStats,
+};
 pub use crate::capabilities::{
     packer_capabilities, ASSISTANT_ONLY_LOSS, BEST_FIT_PACKING, DETERMINISTIC_PACKING,
     GPU_READY_LAYOUT, GREEDY_PACKING, LOSS_MASK_GENERATION, PACKER_CAPABILITY_NAMES,
